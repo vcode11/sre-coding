@@ -34,10 +34,11 @@ import re
 from typing import Optional
 from collections import Counter
 
-http_regex = re.compile(r"(?:[^\"]+)\"(?:GET|POST|PUT|DELETE)\s+([^\"]+)\" (\d+)")
+http_regex = re.compile(r"([^\s]+)(?:[^\"]+)(?:\"GET|POST|PUT|DELETE)\s+([^\s]+)(?:[^\"]+)(?:[^\d]+)\s+(\d+)")
 
 @dataclass
 class HttpData:
+    ip: str
     path: str
     status_code: int
 
@@ -46,11 +47,20 @@ def get_http_data_from_log(line: str) -> Optional[HttpData]:
     mo = http_regex.match(line)
     if mo is None:
         return None
-    path, status_code = mo.groups()[0], int(mo.groups()[1])
-    return HttpData(path, status_code)
+    if len(mo.groups()) != 3:
+        print(mo.groups())
+        return None
+    ip, path, status_code = (
+        mo.groups()[0], 
+        mo.groups()[1], 
+        int(mo.groups()[2])
+    )
+    return HttpData(ip, path, status_code)
+
 with open("./access.log") as f:
     status_codes = Counter()
     paths = Counter()
+    ips = Counter()
     for line in f:
         line = line.strip()
         data = get_http_data_from_log(line.strip())
@@ -59,14 +69,18 @@ with open("./access.log") as f:
             continue
         status_codes[data.status_code]+=1
         paths[data.path]+=1
+        ips[data.ip]+=1
 
 print("Status Codes")
 for k, v in status_codes.items():
-    print(k, v, sep="Count: ")
+    print(k, v, sep=" Count: ")
 
-print("Top 3 requested paths")
+print("\nTop 3 requested paths")
 for k, v in paths.most_common(3):
     print(k, v, sep=" Count: ")
 
+print("\nTop 3 ip(s)")
+for k, v in ips.most_common(3):
+    print(k, v, sep=" Count: ")
         
         
