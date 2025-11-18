@@ -45,9 +45,7 @@ with open("./stock_data.csv") as f:
     volume_data = defaultdict(lambda : VolumeData(0, 0))
     price_range_data = {}
     csv_reader = csv.DictReader(f)
-    for i, row in enumerate(csv_reader):
-        if i == 0:
-            continue
+    for row in enumerate(csv_reader):
         ticker = row['Ticker']
         date = row['Date']
         price_range = float(row['High']) - float(row['Low'])
@@ -69,7 +67,7 @@ if ticker not in volume_data:
 print(ticker)
 print(f"Average volume for {ticker} is {volume_data[ticker].avg()}")
 print(
-      f"Max price range for {ticker} is"
+      f"Max price range for {ticker} is "
       f"{price_range_data[ticker].price_range}" 
       f" on {price_range_data[ticker].date}"
     )
